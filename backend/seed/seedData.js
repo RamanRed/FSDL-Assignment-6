@@ -1,5 +1,5 @@
-﻿import dotenv from "dotenv";
-import mongoose from "mongoose";
+import dotenv from "dotenv";
+import { connectDB, pool } from "../config/db.js";
 import Doctor from "../models/Doctor.js";
 
 dotenv.config();
@@ -13,10 +13,11 @@ const doctors = [
 
 const seed = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
+    await connectDB();
     await Doctor.deleteMany();
     await Doctor.insertMany(doctors);
-    console.log("Doctors seeded successfully");
+    console.log("Doctors seeded successfully in PostgreSQL");
+    await pool.end();
     process.exit(0);
   } catch (error) {
     console.error(error.message);

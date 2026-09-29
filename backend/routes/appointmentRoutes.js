@@ -1,4 +1,4 @@
-﻿import express from "express";
+import express from "express";
 import Appointment from "../models/Appointment.js";
 
 const router = express.Router();
@@ -15,10 +15,7 @@ router.get("/", async (req, res) => {
       filter.date = req.query.date;
     }
 
-    const appointments = await Appointment.find(filter)
-      .populate("doctor", "name specialization")
-      .sort({ date: 1, slot: 1 });
-
+    const appointments = await Appointment.find(filter);
     res.json(appointments);
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch appointments", error: error.message });
@@ -33,7 +30,7 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ message: "All required fields must be provided" });
     }
 
-    const appointment = await Appointment.create({
+    const saved = await Appointment.create({
       patientName,
       patientEmail,
       doctor,
@@ -42,10 +39,10 @@ router.post("/", async (req, res) => {
       reason
     });
 
-    const saved = await appointment.populate("doctor", "name specialization");
     res.status(201).json(saved);
   } catch (error) {
-    if (error.code === 11000) {
+    // 23505 is PostgreSQL unique violation code
+    if (error.code === "23505" || error.code === 11000) {
       return res.status(409).json({ message: "This slot is already booked" });
     }
 

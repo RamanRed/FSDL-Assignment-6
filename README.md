@@ -1,9 +1,9 @@
-﻿# Doctor Appointment Booking App (Assignment)
+# Doctor Appointment Booking App (Assignment)
 
 A simple full-stack web application built with:
 - React + Vite (frontend)
 - Node.js + Express (backend)
-- MongoDB + Mongoose (NoSQL database)
+- PostgreSQL (Alpine lightweight SQL database)
 
 ## Features
 - View doctors list
@@ -13,37 +13,31 @@ A simple full-stack web application built with:
 - View and cancel appointments
 
 ## Project Structure
-- `backend/` Express API + MongoDB models
+- `backend/` Express API + PostgreSQL database
 - `frontend/` React Vite app
 
-## How to Run
+## Running with Docker (Recommended)
 
-### 1) Backend setup
+Run the entire application stack (Frontend, Backend, PostgreSQL Alpine) using Docker Compose:
+
 ```bash
-cd backend
-npm install
-copy .env.example .env
-npm run dev
+docker compose up --build
 ```
 
-### 2) Frontend setup
-Open new terminal:
+- **Frontend App**: `http://localhost:3000`
+- **Backend API**: `http://localhost:5000`
+- **PostgreSQL**: `localhost:5432`
+
+To run in background mode:
 ```bash
-cd frontend
-npm install
-copy .env.example .env
-npm run dev
+docker compose up -d --build
 ```
 
-### 3) MongoDB
-Make sure MongoDB is running locally on:
-`mongodb://127.0.0.1:27017/doctor_appointment_db`
-
-If needed, seed doctors manually:
+To stop containers:
 ```bash
-cd backend
-npm run seed
+docker compose down
 ```
+
 
 ## API Endpoints
 - `GET /api/doctors`
