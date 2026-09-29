@@ -1,58 +1,125 @@
-# Doctor Appointment Booking App (Assignment)
+# Multi-Container Application (Assignment 5)
 
-A simple full-stack web application built with:
-- React + Vite (frontend)
-- Node.js + Express (backend)
-- PostgreSQL (Alpine lightweight SQL database)
+A multi-container microservice application managed using **Docker Compose (`compose.yaml`)**, demonstrating:
+- **Services**: `frontend`, `backend`, `kitchen-service`, `postgres`
+- **Port Mapping**: Host to Container port forwarding
+- **Environment Variables**: Dynamic configuration per container
+- **Volumes**: Named persistent storage for PostgreSQL (`pgdata`)
+- **Networking**: Custom bridge network (`app-network`) with internal DNS service discovery
 
-## Features
-- View doctors list
-- Select date from a calendar strip (next 7 days)
-- Book appointment by choosing slot
-- Prevent double booking for same doctor/date/slot
-- View and cancel appointments
+---
 
-## Project Structure
-- `backend/` Express API + PostgreSQL database
-- `frontend/` React Vite app
+## 🏗 Architecture Diagram
 
-## Running with Docker (Recommended)
-
-Run the entire application stack (Frontend, Backend, PostgreSQL Alpine) using Docker Compose:
-
-```bash
-docker compose up --build
+```
+                ┌─────────────────────┐
+                │    Web Browser       │
+                │  localhost:3000      │
+                └──────────┬──────────┘
+                           │
+                           ▼
+                ┌─────────────────────┐
+                │ Frontend Container  │
+                │ React + Nginx       │
+                │ 3000 → 80           │
+                └──────────┬──────────┘
+                           │ API
+                           ▼
+                ┌─────────────────────┐
+                │ Backend Container   │
+                │ Node.js + Express   │
+                │ 5000 → 5000         │
+                └───────┬───────┬─────┘
+                        │       │
+              PostgreSQL│       │Kitchen API (http://kitchen-service:3003)
+                        ▼       ▼
+             ┌────────────┐ ┌──────────────┐
+             │ PostgreSQL │ │Kitchen       │
+             │ Container  │ │Service       │
+             │ 5432       │ │3003          │
+             └─────┬──────┘ └──────────────┘
+                   │
+                   ▼
+             ┌────────────┐
+             │ pgdata     │
+             │ Volume     │
+             └────────────┘
 ```
 
-- **Frontend App**: `http://localhost:3000`
-- **Backend API**: `http://localhost:5000`
-- **PostgreSQL**: `localhost:5432`
+---
 
-To run in background mode:
-```bash
-docker compose up -d --build
+## 📁 Project Structure
+
+```text
+├── compose.yaml
+├── frontend/
+│   ├── Dockerfile
+│   ├── nginx.conf
+│   └── src/ ...
+├── backend/
+│   ├── Dockerfile
+│   ├── server.js
+│   └── config/ ...
+└── kitchen-service/
+    ├── Dockerfile
+    ├── package.json
+    └── server.js
 ```
 
-To stop containers:
+---
+
+## 🚀 Running the Application
+
+### 1. Build all images:
+```bash
+docker compose build
+```
+
+### 2. Start all containers in background:
+```bash
+docker compose up -d
+```
+
+### 3. Check container status:
+```bash
+docker compose ps
+```
+
+### 4. Stop all containers:
 ```bash
 docker compose down
 ```
 
+---
 
-## API Endpoints
-- `GET /api/doctors`
-- `GET /api/appointments?doctorId=<id>&date=YYYY-MM-DD`
-- `POST /api/appointments`
-- `DELETE /api/appointments/:id`
+## 🌐 Endpoints & Ports
 
-## Sample Appointment JSON
-```json
-{
-  "patientName": "Rahul",
-  "patientEmail": "rahul@gmail.com",
-  "doctor": "<doctor_id>",
-  "date": "2026-03-01",
-  "slot": "10:00",
-  "reason": "General Checkup"
-}
-```
+| Service | Host URL | Description |
+|---|---|---|
+| **Frontend** | `http://localhost:3000` | React web application |
+| **Backend API** | `http://localhost:5000/api/health` | Node.js Express backend |
+| **Backend -> Kitchen Status** | `http://localhost:5000/api/kitchen-status` | Backend calling Kitchen Service over Docker network |
+| **Kitchen Service** | `http://localhost:3003/` | Kitchen Service API |
+| **Kitchen Health** | `http://localhost:3003/health` | Healthcheck endpoint |
+| **PostgreSQL** | `localhost:5432` | Relational database (Volume: `pgdata`) |
+
+---
+
+## 🔍 Verification Commands for Report / Viva
+
+- **Show running containers**:
+  ```bash
+  docker compose ps
+  ```
+- **Inspect bridge network (`app-network`)**:
+  ```bash
+  docker network inspect fsdl-assignment-6_app-network
+  ```
+- **Inspect persistent volume (`pgdata`)**:
+  ```bash
+  docker volume inspect fsdl-assignment-6_pgdata
+  ```
+- **View container logs**:
+  ```bash
+  docker compose logs -f
+  ```
